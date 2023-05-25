@@ -69,8 +69,7 @@ function handlePopupTable() {
     let annotatedFormulae = counts[1];
 
     var annotationsCountTable = document.getElementById("annotationsCountTable");
-
-
+console.log('got in here ', isFormula)
     if (isFormula) {
         annotationsCountTable.innerHTML = 'Annotated Formulae: ' + annotatedFormulae + '/' + formulaCount;
         populateTableFormula();
@@ -305,7 +304,7 @@ function populateTableIdentifier(random=true) {
       }
     };
 }
-2
+
 
 function createCell(item, source, rowNum) {
     /*
@@ -446,6 +445,24 @@ function selected(argsString){
     renderAnnotationsTable();
 }
 
+/**
+ * Function that parses token data and calls the popup table.
+ * @param {string} token Name of the Identifier/Formula 
+ * @param {string} mathEnv Mathematical Formula that the Identifier/Formula is involved in.
+ * @param {array} uIDs Unique IDs for the Identifier/Formula
+ * @param {string} type Type of token (Global or Identifier)
+ */
+const handleTableTokenClick = (token, mathEnv, uIDs, type) => {
+     // It doesn't matter for global variables because we want to edit for all variables.
+     const uID = uIDs[0];
+
+     // JSON's for content and math env
+     const jsonContent = JSON.stringify(getJson("content", token));
+     const jsonMathEnv = JSON.stringify(getJson("math_env", mathEnv));
+
+     clickToken(jsonContent, jsonMathEnv, uID, type);
+}
+
 function renderAnnotationsTable() {
     /*
     The table at the top of the document, that is constantly being updated with the latest annotations is generated in
@@ -465,26 +482,26 @@ function renderAnnotationsTable() {
     document.getElementById("formulaAnnotationsCount").innerHTML = 'Annotated Formulae: ' + annotatedFormulae + '/' + formulaCount;
 
 
-    function createRow(token, name, local, uIDs, type, qid) {
+    function createRow(token, name, local, uIDs, type, qid, mathEnv) {
         var bold = true ? type=='Identifier' : false;
         var args = [
                 token,
                 local,
                 uIDs
             ];
-        var type = local ? 'Local' : 'Global';
+        var scopeType = local ? 'Local' : 'Global';
         var argsString = args.join('----');
         argsString = argsString.split('\\').join('\\\\');
 
-        var tr = "<tr><td>";
+        var tr = '<tr><td onClick="handleTableTokenClick(\'' + token + '\', \'' + mathEnv + '\', \'' + uIDs + '\', \'' + type + '\')">';
         if (bold){
             tr += "<b><strong>" + token + "</b></strong>";
         } else {
             tr += token;
         }
-        tr += "</td><td>" + name.replace(new RegExp('__APOSTROPH__', 'g'), '\'') + ' (' + qid + ')' + "</td><td>" + type + "</td>";
+        tr += "</td><td>" + name.replace(new RegExp('__APOSTROPH__', 'g'), '\'') + ' (' + qid + ')' + "</td><td>" + scopeType + "</td>";
 
-        //var tr ="<tr><td>" + token + "</td><td>" + name.replace(new RegExp('__APOSTROPH__', 'g'), '\'') + "</td><td>" + type + "</td>";
+        //var tr ="<tr><td>" + token + "</td><td>" + name.replace(new RegExp('__APOSTROPH__', 'g'), '\'') + "</td><td>" + scopeType + "</td>";
         tr += "<td onclick='deleteFromAnnotations(\"" + argsString + "\")'>x</td></tr>";
         return tr;
     }
@@ -495,14 +512,15 @@ function renderAnnotationsTable() {
     var l = annotations['local'];
     for (var token in l) {
         for (var uID in l[token]){
-            tr = createRow(token, l[token][uID]['name'], true, [uID], l[token][uID]['type'], l[token][uID]['qid']);
+            tr = createRow(token, l[token][uID]['name'], true, [uID], l[token][uID]['type'], l[token][uID]['qid'], g[token]['mathEnv']);
             annotationsTable += tr;
         }
     }
 
     var g = annotations['global'];
+    console.log(g)
     for (var token in g) {
-        tr = createRow(token, g[token]['name'], false, g[token]['uniqueIDs'], g[token]['type'], g[token]['qid']);
+        tr = createRow(token, g[token]['name'], false, g[token]['uniqueIDs'], g[token]['type'], g[token]['qid'], g[token]['mathEnv']);
         annotationsTable += tr;
     }
 

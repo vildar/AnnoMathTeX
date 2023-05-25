@@ -185,3 +185,11 @@ function ratioRemaining() {
 
     return [annotatedIdentifiers, annotatedFormulae/2];
 }
+
+/**
+ * Function that converts a {key, value} pair to a JSON object.
+ * @param {string} key
+ * @param {any} value
+ * @returns JSON object {key: value}
+ */
+const getJson = (key, value) => ({ [key]: value })
