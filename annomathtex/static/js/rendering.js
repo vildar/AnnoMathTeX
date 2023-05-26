@@ -15,7 +15,7 @@ function setAnnotatedColor(uIDs) {
     /*
     Set the color of annotations tokens.
      */
-    for (var i=0 in uIDs) {
+    for (var i in uIDs) {
         document.getElementById(uIDs[i]).style.color = annotationsColor;
     }
 }
@@ -69,7 +69,7 @@ function handlePopupTable() {
     let annotatedFormulae = counts[1];
 
     var annotationsCountTable = document.getElementById("annotationsCountTable");
-console.log('got in here ', isFormula)
+
     if (isFormula) {
         annotationsCountTable.innerHTML = 'Annotated Formulae: ' + annotatedFormulae + '/' + formulaCount;
         populateTableFormula();
@@ -452,14 +452,16 @@ function selected(argsString){
  * @param {array} uIDs Unique IDs for the Identifier/Formula
  * @param {string} type Type of token (Global or Identifier)
  */
-const handleTableTokenClick = (token, mathEnv, uIDs, type) => {
-     // It doesn't matter for global variables because we want to edit for all variables.
-     const uID = uIDs[0];
+const handleTableTokenClick = (token, uID, type, scope) => {
+     // Scope (local or global) must be in lowercase
+     const scopeType = scope.toLowerCase()
+     const mathEnv = annotations[scopeType][token]['math_env']
 
-     // JSON's for content and math env
+     // Stringified JSON's for content and math env
      const jsonContent = JSON.stringify(getJson("content", token));
      const jsonMathEnv = JSON.stringify(getJson("math_env", mathEnv));
 
+     // Trigger the workflow for formula/identifier click
      clickToken(jsonContent, jsonMathEnv, uID, type);
 }
 
@@ -482,7 +484,7 @@ function renderAnnotationsTable() {
     document.getElementById("formulaAnnotationsCount").innerHTML = 'Annotated Formulae: ' + annotatedFormulae + '/' + formulaCount;
 
 
-    function createRow(token, name, local, uIDs, type, qid, mathEnv) {
+    function createRow(token, name, local, uIDs, type, qid) {
         var bold = true ? type=='Identifier' : false;
         var args = [
                 token,
@@ -493,7 +495,8 @@ function renderAnnotationsTable() {
         var argsString = args.join('----');
         argsString = argsString.split('\\').join('\\\\');
 
-        var tr = '<tr><td onClick="handleTableTokenClick(\'' + token + '\', \'' + mathEnv + '\', \'' + uIDs + '\', \'' + type + '\')">';
+        // It doesn't matter for global variables because we want to edit for all variables.
+        var tr = '<tr><td onClick="handleTableTokenClick(\'' + token + '\', \'' + uIDs[0] + '\', \'' + type + '\', \'' + scopeType + '\')">';
         if (bold){
             tr += "<b><strong>" + token + "</b></strong>";
         } else {
@@ -512,15 +515,14 @@ function renderAnnotationsTable() {
     var l = annotations['local'];
     for (var token in l) {
         for (var uID in l[token]){
-            tr = createRow(token, l[token][uID]['name'], true, [uID], l[token][uID]['type'], l[token][uID]['qid'], g[token]['mathEnv']);
+            tr = createRow(token, l[token][uID]['name'], true, [uID], l[token][uID]['type'], l[token][uID]['qid']);
             annotationsTable += tr;
         }
     }
 
     var g = annotations['global'];
-    console.log(g)
     for (var token in g) {
-        tr = createRow(token, g[token]['name'], false, g[token]['uniqueIDs'], g[token]['type'], g[token]['qid'], g[token]['mathEnv']);
+        tr = createRow(token, g[token]['name'], false, g[token]['uniqueIDs'], g[token]['type'], g[token]['qid']);
         annotationsTable += tr;
     }
 
