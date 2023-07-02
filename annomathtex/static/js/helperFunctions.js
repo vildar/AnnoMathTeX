@@ -185,3 +185,28 @@ function ratioRemaining() {
 
     return [annotatedIdentifiers, annotatedFormulae/2];
 }
+
+/**
+ * Function that iteratively appends annotation data.
+ * @param {array} annotationData 
+ */
+function addGlobalAnnotations(annotationData){
+    annotationData.forEach(annotation => {
+        const {uID, name, qid, source, type, content: searchString, mathEnv, selectedTime} = annotation
+
+        // Name of the identifier/formula
+        content = searchString
+
+        // Set formula switch
+        if(type === 'Formula') isFormula = true
+        else isFormula = false
+
+        // Get all linkedIDs
+        const uIDs = getLinkedIDs(content);
+        if (uIDs.length == 0) {
+            uIDs.push(uniqueID)
+        }
+
+        addToAnnotations(uID, name, source, rowNum, qid, selectedTime, -1, false, uIDs, mathEnv);
+    })
+}

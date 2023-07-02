@@ -102,7 +102,7 @@ function addToMannualRecommendations(name, qid) {
 }
 
 
-function addToAnnotations(uID, name, source, rowNum, qid, selectionTime, manualSelectionTime=-1, noMatch=false, uIDs = null) {
+function addToAnnotations(uID, name, source, rowNum, qid, selectionTime, manualSelectionTime=-1, noMatch=false, uIDs = null, mathEnvCustom) {
     /*
     manualSelectionTime: the time from when the token was clicked until MANUAL INSERTION was selected
     (only for manual annotation)
@@ -143,7 +143,7 @@ function addToAnnotations(uID, name, source, rowNum, qid, selectionTime, manualS
         //todo: unify with function localDict()
         annotations['global'][content] = {
         'name': name,
-        'mathEnv': mathEnv,
+        'mathEnv': mathEnv || mathEnvCustom,
         'uniqueIDs': uIDs,
         'qid': qid,
         'time': selectionTime,
@@ -156,7 +156,13 @@ function addToAnnotations(uID, name, source, rowNum, qid, selectionTime, manualS
 }
 
 
+function deleteAllAnnotations() {
+    // Delete all local annotations
+    for (const annotation in annotations['local']) delete annotations['local'][annotation] 
 
+    // Delete all global annotations
+    for (const annotation in annotations['global']) delete annotations['global'][annotation]
+}
 
 function deleteLocalAnnotation(token, uID) {
     delete annotations['local'][token][uID];

@@ -2,7 +2,6 @@ import logging
 from jquery_unparam import jquery_unparam
 from django.shortcuts import render
 from django.views.generic import View
-from operator import itemgetter
 
 from ..forms.uploadfileform import UploadFileForm
 from ..forms.save_annotation_form import SaveAnnotationForm
@@ -72,24 +71,29 @@ class AnnotationView(View):
 
         elif action == 'autoAnnotate':
             import json
+            from django.http import HttpResponse
+
             annotations_list = json.loads(post_data.get('annotations_list'))
             annotation_recommendations = []
             
-
-            for annotation in annotations_list:
-                # searchString,  = itemgetter('a', 'b')(params)
+            for annotation in annotations_list[:5]:
+                tokenType, uniqueID, mathEnv, searchString = annotation['tokenType'], annotation['uniqueId'], annotation['mathEnv'], annotation['searchString']
                 anno_item = {k: jquery_unparam(v) for (k, v) in annotation.items()}
                 recommendations = TokenClickedHandler(anno_item).get_recommendations()[1]
-                anno_name, qid = TokenClickedHandler(recommendations).filter_recommendations()
-                print(annotation)
-                
-                # annotation_recommendations.append({
-                #     'uID': 
-                # })
+                anno_name, qid, source, selected_time = TokenClickedHandler(recommendations).filter_recommendations()
 
-                break
+                annotation_recommendations.append({
+                    'uID': uniqueID,
+                    'type': tokenType,
+                    'name': anno_name,
+                    'qid': qid,
+                    'source': source,
+                    'content': searchString,
+                    'mathEnv': mathEnv,
+                    'selectedTime': selected_time
+                })
 
-            response = TokenClickedHandler(items).get_recommendations()
+            response = HttpResponse(json.dumps(annotation_recommendations), content_type='application/json')
             return response
 
         elif action == 'checkManualRecommendationQID':

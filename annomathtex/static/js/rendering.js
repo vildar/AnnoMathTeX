@@ -92,7 +92,7 @@ function populateTableFormula(random=true) {
      */
 
     window.tokenClickedTime = Date.now();
-    sourcesWithNums = {};
+    if(!sourcesWithNums || Object.keys(sourcesWithNums).length === 0) sourcesWithNums = {};
 
     //let wikidataResults = recommendations['wikidataResults'];
     let wikidata1Results = recommendations['wikidata1Results'];
@@ -208,7 +208,7 @@ function populateTableIdentifier(random=true) {
     source, which is important for the evaluation)
      */
     window.tokenClickedTime = Date.now();
-    sourcesWithNums = {};
+    if(!sourcesWithNums || Object.keys(sourcesWithNums).length === 0) sourcesWithNums = {};
 
     var arXivEvaluationItems = recommendations['arXivEvaluationItems'];
     var wikipediaEvaluationItems = recommendations['wikipediaEvaluationItems'];
@@ -548,12 +548,35 @@ function selectedWikipediaResult(name){
     //getWikipediaArticle(name);
 }
 
+function resetSourceWithNums(sourceData) {
+    sourcesWithNums = {}
+    const rowNum = null
+
+    sourceData.forEach(recommendation => {
+        const { name, source} = recommendation
+
+        if (name in sourcesWithNums){
+            sourcesWithNums[name][source] = rowNum;
+        } else {
+            sourcesWithNums[name] = {};
+            sourcesWithNums[name][source] = rowNum;
+        }
+    })
+}
+
+/**
+ * Function that handles the auto annotate click event.
+ */
 function autoAnnotate(){    
-    console.log('start auto annotate')
+    console.log('Auto annotations begin')
 
     const filteredAnnotations = [];
     let searchStringSet = new Set();
 
+    /**
+     * Remove repeated annotation of identifiers. We only want to globally annotate
+     * for the moment.
+     */
     annotationsList.forEach(obj => {
     if (obj.searchString !== "" && !searchStringSet.has(obj.searchString)) {
         searchStringSet.add(obj.searchString);
@@ -561,9 +584,10 @@ function autoAnnotate(){
     }
     });
 
-    const data_dict = { 'csrfmiddlewaretoken': getCookie("csrftoken"),
-    'action': 'autoAnnotate',
-    'annotations_list': JSON.stringify(filteredAnnotations)
+    const data_dict = { 
+        'csrfmiddlewaretoken': getCookie("csrftoken"),
+        'action': 'autoAnnotate',
+        'annotations_list': JSON.stringify(filteredAnnotations)
     }
 
     $.ajax({
@@ -572,14 +596,20 @@ function autoAnnotate(){
         data : data_dict, // data sent with the post request
   
         //successful response
-        success : function(json) {
-            console.log(json)  
-            console.log('Auto annotations done.')
-  
+        success : function(annotation_recommendations) {
+            deleteAllAnnotations()
+
+            resetSourceWithNums()
+
+            addGlobalAnnotations(annotation_recommendations)
+
+            renderAnnotationsTable()
+            
+            console.log('Auto annotation complete.')
         },
   
         //non-successful response
-        error : function(xhr,errmsg,err) {
+        error : function(xhr, errmsg, err) {
             $('#results').html("<div class='alert-box alert radius' data-alert>error: "+errmsg+
                 " <a href='#' class='close'>&times;</a></div>");
             console.log(xhr.status + ": " + xhr.responseText);

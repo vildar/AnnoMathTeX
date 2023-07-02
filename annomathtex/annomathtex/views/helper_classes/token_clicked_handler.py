@@ -13,6 +13,7 @@ from ...config import *
 
 from collections import Counter
 import random
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 token_clicked_handler_logger = logging.getLogger(__name__)
@@ -205,26 +206,32 @@ class TokenClickedHandler:
 
     def filter_recommendations(self):
         reccs = self.items
-        rec_keys_list = reccs.keys()
 
         # Remove recommendations that are empty
-        for rec_key in rec_keys_list:
-            reccs[rec_key][:] = [d for d in reccs[rec_key] if d.get('name') != '']
+        reccs = {key: [d for d in value if d.get('name')] for key, value in reccs.items() if value}
 
-        # Remove sources that are empty
-        reccs = {key: value for key, value in reccs.items() if value}
+        # Get a flattened list of recommendation names
+        rec_names = [item['name'] for sublist in reccs.values() for item in sublist]
 
-        # Get single list of all combinations
-        flat_rec_list = [(item['name'], item['qid'], source) for source, sublist in reccs.values() for item in sublist]
+        # Count the occurrences of each recommendation name
+        rec_counts = Counter(rec_names)
 
-        # Find count of most popular reccomendation
-        recc_items_count = Counter(flat_rec_list)
-        max_recc_count = max(recc_items_count.values())
+        # Find the maximum count
+        max_count = max(rec_counts.values())
 
-        # Fetch all recommendations with max count
-        popular_recc = [combination for combination, count in recc_items_count.items() if count == max_recc_count]
+        # Get all recommendations with the maximum count
+        popular_recs = [rec for rec, count in rec_counts.items() if count == max_count]
 
-        # Choose a random reccomendation
-        filtered_recc = random.choice(popular_recc)
+        # Choose a random recommendation
+        random_pop_rec = random.choice(popular_recs)
 
-        return filtered_recc
+        # Filter sources matching the random recommendation
+        filtered_sources = [(item['name'], item['qid'], source) for source, sublist in reccs.items() for item in sublist if item['name'] == random_pop_rec]
+
+        # Choose a random source from the filtered sources
+        selected_source = random.choice(filtered_sources)
+
+        # Find the selected time
+        selected_time = datetime.now().strftime('%d/%m/%y %H:%M:%S.%f')
+
+        return selected_source + (selected_time,)

@@ -92,7 +92,7 @@ function clickToken(jsonContent, jsonMathEnv, tokenUniqueId, tokenType) {
                   'uniqueId': tokenUniqueId,
                   'annotations': $.param(replaceAllEqualsPlusAnn(annotations))
                   };
-console.log(data_dict)
+
     $.ajax({
       url : "file_upload/", // the endpoint
       type : "POST", // http method
