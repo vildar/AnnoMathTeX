@@ -4,7 +4,7 @@ import json
 class File(models.Model):
 
     def __init__(self, processed_lines, __linked_words__, __linked_math_symbols__, file_name, identifier_count,
-                 formula_count, existing_annotations=None):
+                 formula_count, all_identifiers, existing_annotations=None):
         """
 
         :param processed_lines: Each processed line consists of one or mulitple chunks. A chunk
@@ -27,6 +27,7 @@ class File(models.Model):
         self.identifier_count = identifier_count
         self.formula_count = formula_count
         self.existing_annotations = json.dumps({'existingAnnotations': existing_annotations})
+        self.all_identifiers = all_identifiers
 
 
     def handle_linked_tokens(self, links_dict):

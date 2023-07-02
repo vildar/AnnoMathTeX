@@ -8,7 +8,6 @@ function noMatchInputListener() {
     //var manualRecommendationStartTime = Date.now();
 }
 
-
 function rejectHighlightingListener() {
     /*
     Starts the timer when the user starts inputting a manual recommendation
@@ -44,7 +43,6 @@ function rejectHighlightingListener() {
 
 }
 
-
 function addNoMatchToAnnotations(result) {
 
 
@@ -72,7 +70,6 @@ function addNoMatchToAnnotations(result) {
 
 }
 
-
 function handleNoMatch(){
     /*
     The user did not find any of the recommendations to be fitting and added his own suggestion.
@@ -89,7 +86,6 @@ function handleNoMatch(){
 
 }
 
-
 function addToMannualRecommendations(name, qid) {
 
 
@@ -100,7 +96,6 @@ function addToMannualRecommendations(name, qid) {
     }
 
 }
-
 
 function addToAnnotations(uID, name, source, rowNum, qid, selectionTime, manualSelectionTime=-1, noMatch=false, uIDs = null, mathEnvCustom) {
     /*
@@ -155,7 +150,6 @@ function addToAnnotations(uID, name, source, rowNum, qid, selectionTime, manualS
     }
 }
 
-
 function deleteAllAnnotations() {
     // Delete all local annotations
     for (const annotation in annotations['local']) delete annotations['local'][annotation] 
@@ -189,9 +183,6 @@ function deleteFromAnnotations(argsString) {
 
     renderAnnotationsTable();
 }
-
-
-
 
 function handleExistingAnnotations(existing_annotations) {
     /*
@@ -233,7 +224,6 @@ function handleExistingAnnotations(existing_annotations) {
 
 }
 
-
 function checkIfAnnotationExists(name) {
 
     var exists = false;
@@ -261,3 +251,28 @@ function checkIfAnnotationExists(name) {
 
 }
 
+/**
+ * Function that appends identifiers and formulae to global variable.
+ * @param {string} jsonContent Name of the token.
+ * @param {string} jsonMathEnv Mathematical formula of the token.
+ * @param {string} tokenUniqueId Unique ID for the token.
+ * @param {string} tokenType Type of token (Formula or Identifier)
+ */
+function addToAllAnnotations(jsonContent, jsonMathEnv, tokenUniqueId, tokenType){
+    const tokenContent = JSON.parse(jsonContent)['content'];
+    const mathEnv = JSON.parse(jsonMathEnv)['math_env'];
+
+    content = 
+        tokenType == 'Identifier' && allIdentifiers.includes(tokenContent) 
+            ? tokenContent 
+            : mathEnv;
+
+    annotationsList.push({ 
+        the_post : $("#" + tokenUniqueId).val(),
+        'searchString': content,
+        'tokenType': tokenType,
+        'mathEnv': $.param({'dummy': mathEnv}),
+        'uniqueId': tokenUniqueId,
+        'annotations': $.param(replaceAllEqualsPlusAnn(annotations))
+    })
+}

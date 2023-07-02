@@ -207,6 +207,6 @@ function addGlobalAnnotations(annotationData){
             uIDs.push(uniqueID)
         }
 
-        addToAnnotations(uID, name, source, rowNum, qid, selectedTime, -1, false, uIDs, mathEnv);
+        addToAnnotations(uID, name, source, null, qid, selectedTime, -1, false, uIDs, mathEnv);
     })
 }

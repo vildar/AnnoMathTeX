@@ -40,6 +40,7 @@ class Parser(object, metaclass=ABCMeta):
         self.identifier_line_dict = {}
         self.identifier_count = 0
         self.formula_count = len(self.math_envs)
+        self.all_identifiers = []
 
     @abstractmethod
     def decode(self, request_file):
@@ -214,6 +215,7 @@ class Parser(object, metaclass=ABCMeta):
         #self.__LOGGER__.debug(' process_math_env, split_math_env: {} '.format(split_math_env))
 
         self.identifier_count += len(identifiers)
+        self.all_identifiers += identifiers
 
         #str_math_env = str(math_env).replace('<math>', '')
         str_math_env = re.sub('<math.*?>', '', str(math_env))
@@ -347,6 +349,7 @@ class Parser(object, metaclass=ABCMeta):
                                self.file_name,
                                self.identifier_count,
                                self.formula_count,
+                               self.all_identifiers,
                                existing_annotations)
 
 

@@ -33,6 +33,7 @@
     var content;
     var tmpResultList;
     var annotationsList = [];
+    var allIdentifiers = "{{ File.all_identifiers|escapejs }}"
   </script>
 </head>
 <body>
@@ -116,46 +117,15 @@
               var tokenUniqueId = "{{ Token.unique_id }}";
               var tokenType = "{{ Token.type }}";
 
-              var tokenContent = JSON.parse(jsonContent)['content'];
-              var mathEnvContent = JSON.parse(jsonMathEnv)['math_env'];
-          
-              var uniqueID = tokenUniqueId;
-              var mathEnv = mathEnvContent;
-
               if(tokenType == 'Identifier' || tokenType == 'Formula'){
-                if (tokenType == 'Identifier') {
-                  var fillText = 'Identifier: ' + tokenContent;
-                  content = tokenContent;
-                  isFormula = false;
-                  var headerText = 'IDENTIFIER ANNOTATION';
-                  var rejectHighlightingButtonText = 'Not an identifier';
-                }
-                else if(tokenType == 'Formula') {
-                    var fillText = 'Formula: ' + mathEnvContent;
-                    content = mathEnvContent//.split('\\').join('');
-                    isFormula = true;
-                    var headerText = 'FORMULA ANNOTATION';
-                    var rejectHighlightingButtonText = 'Not a formula';
-                }
-
-                annotationsList.push({ the_post : $("#" + tokenUniqueId).val(),
-                'searchString': content,
-                'tokenType': tokenType,
-                'mathEnv': $.param({'dummy': mathEnv}),
-                'uniqueId': tokenUniqueId,
-                'annotations': $.param(replaceAllEqualsPlusAnn(annotations))
-                })
+                addToAllAnnotations(jsonContent, jsonMathEnv, tokenUniqueId, tokenType)
               }
+              
               //this part of js has to be in the loop, otherwise the unique_id will be lost
               //try catch not working yet, error happens when a backslash is in the text part
                 $("#{{ Token.unique_id }}").on('click', function (event) {
                   event.preventDefault();
                   //console.log('wikidata query sent out');
-
-                  var jsonContent = "{{ Token.json_content|escapejs }}";
-                  var jsonMathEnv = "{{ Token.json_math_env|escapejs  }}";
-
-
                   try {
                     clickToken(jsonContent,
                               jsonMathEnv,

@@ -599,12 +599,12 @@ function autoAnnotate(){
         success : function(annotation_recommendations) {
             deleteAllAnnotations()
 
-            resetSourceWithNums()
+            resetSourceWithNums(annotation_recommendations)
 
             addGlobalAnnotations(annotation_recommendations)
 
             renderAnnotationsTable()
-            
+
             console.log('Auto annotation complete.')
         },
   
