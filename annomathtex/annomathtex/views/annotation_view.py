@@ -2,6 +2,7 @@ import logging
 from jquery_unparam import jquery_unparam
 from django.shortcuts import render
 from django.views.generic import View
+from operator import itemgetter
 
 from ..forms.uploadfileform import UploadFileForm
 from ..forms.save_annotation_form import SaveAnnotationForm
@@ -52,7 +53,8 @@ class AnnotationView(View):
         :return: The rendered response containing the template name, the necessary form and the response data (if
                  applicable).
         """
-        items = {k: jquery_unparam(v) for (k, v) in request.POST.items()}
+        post_data = request.POST
+        items = {k: jquery_unparam(v) for (k, v) in post_data.items()}
         if 'action' in items:
             action = list(items['action'].keys())[0]
         else:
@@ -61,11 +63,33 @@ class AnnotationView(View):
         #annotation_view_logger.info(items)
         #annotation_view_logger.info(request.POST)
 
-        if 'file_submit' in request.POST:
+        if 'file_submit' in post_data:
             return FileHandler(request).process_local_file()
 
         elif action == 'getRecommendations':
             response, recommendations_dict = TokenClickedHandler(items).get_recommendations()
+            return response
+
+        elif action == 'autoAnnotate':
+            import json
+            annotations_list = json.loads(post_data.get('annotations_list'))
+            annotation_recommendations = []
+            
+
+            for annotation in annotations_list:
+                # searchString,  = itemgetter('a', 'b')(params)
+                anno_item = {k: jquery_unparam(v) for (k, v) in annotation.items()}
+                recommendations = TokenClickedHandler(anno_item).get_recommendations()[1]
+                anno_name, qid = TokenClickedHandler(recommendations).filter_recommendations()
+                print(annotation)
+                
+                # annotation_recommendations.append({
+                #     'uID': 
+                # })
+
+                break
+
+            response = TokenClickedHandler(items).get_recommendations()
             return response
 
         elif action == 'checkManualRecommendationQID':

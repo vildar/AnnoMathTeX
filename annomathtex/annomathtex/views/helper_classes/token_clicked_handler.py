@@ -11,6 +11,9 @@ from ...views.helper_classes.data_repo_handler import DataRepoHandler
 from ...views.helper_classes.cache_handler import CacheHandler
 from ...config import *
 
+from collections import Counter
+import random
+
 logging.basicConfig(level=logging.INFO)
 token_clicked_handler_logger = logging.getLogger(__name__)
 
@@ -45,9 +48,6 @@ class TokenClickedHandler:
 
 
     def get_recommendations(self):
-
-
-
         recommendations_dict = {'arXivEvaluationItems': [],
                         'wikipediaEvaluationItems': [],
                         'wikidata1Results': [],
@@ -55,7 +55,6 @@ class TokenClickedHandler:
                         'wordWindow': [],
                         'formulaConceptDB': [],
                         'manual': []}
-
 
         search_string = [k for k in self.items['searchString']][0]
         token_type_dict = self.items['tokenType']
@@ -204,4 +203,28 @@ class TokenClickedHandler:
             word_window = [{}]
         return word_window[:recommendations_limit]
 
+    def filter_recommendations(self):
+        reccs = self.items
+        rec_keys_list = reccs.keys()
 
+        # Remove recommendations that are empty
+        for rec_key in rec_keys_list:
+            reccs[rec_key][:] = [d for d in reccs[rec_key] if d.get('name') != '']
+
+        # Remove sources that are empty
+        reccs = {key: value for key, value in reccs.items() if value}
+
+        # Get single list of all combinations
+        flat_rec_list = [(item['name'], item['qid'], source) for source, sublist in reccs.values() for item in sublist]
+
+        # Find count of most popular reccomendation
+        recc_items_count = Counter(flat_rec_list)
+        max_recc_count = max(recc_items_count.values())
+
+        # Fetch all recommendations with max count
+        popular_recc = [combination for combination, count in recc_items_count.items() if count == max_recc_count]
+
+        # Choose a random reccomendation
+        filtered_recc = random.choice(popular_recc)
+
+        return filtered_recc

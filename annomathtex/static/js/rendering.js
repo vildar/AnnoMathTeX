@@ -548,3 +548,41 @@ function selectedWikipediaResult(name){
     //getWikipediaArticle(name);
 }
 
+function autoAnnotate(){    
+    console.log('start auto annotate')
+
+    const filteredAnnotations = [];
+    let searchStringSet = new Set();
+
+    annotationsList.forEach(obj => {
+    if (obj.searchString !== "" && !searchStringSet.has(obj.searchString)) {
+        searchStringSet.add(obj.searchString);
+        filteredAnnotations.push(obj);
+    }
+    });
+
+    const data_dict = { 'csrfmiddlewaretoken': getCookie("csrftoken"),
+    'action': 'autoAnnotate',
+    'annotations_list': JSON.stringify(filteredAnnotations)
+    }
+
+    $.ajax({
+        url : "auto-annotate/", // the endpoint
+        type : "POST", // http method
+        data : data_dict, // data sent with the post request
+  
+        //successful response
+        success : function(json) {
+            console.log(json)  
+            console.log('Auto annotations done.')
+  
+        },
+  
+        //non-successful response
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>");
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+      });  
+}
