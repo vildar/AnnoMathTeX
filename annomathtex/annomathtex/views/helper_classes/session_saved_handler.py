@@ -126,3 +126,11 @@ class SessionSavedHandler:
         data_repo_handler.commit_evaluation(evaluation_file_name, evaluation_csv_string)
         return
 
+    def save_update(self, filename, content):
+        data_repo_handler = DataRepoHandler()
+        data_repo_handler.commit_file(filename, content)
+
+        return HttpResponse(
+            json.dumps('Success'),
+            content_type='application/json'
+        )

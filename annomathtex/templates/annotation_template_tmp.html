@@ -32,20 +32,32 @@
     var isFormula;
     var content;
     var tmpResultList;
+    var editMode = false;
+    var editModeOnText = 'Turn on edit mode'
+    var editModeOffText = 'Turn off edit mode'
   </script>
 </head>
 <body>
 
 <form method="POST" id="post-form">
     {% csrf_token %}
-    <button type="submit" name="post-form-submit2" onclick="save();">
+    <button id="update-article-submit" style="display:none;" type="button" name="edited-article-submit" onclick="updateArticleText();">
+      Save changes
+    </button>
+    <button id="save-article-submit" type="submit" name="post-form-submit2" onclick="save();">
       Save
     </button>
+    <button id="edit-mode-toggle" type="button" name="edit-mode-toggle" onclick="toggleEditMode();">
+      Turn on edit mode
     </button>
 </form>
 <h3 id="documentName" style="left: 50%;"></h3>
 
-<div id="identifierAnnotationsCount"></div>
+<div contentEditable="true" id="edit-mode-article" style="display:none;">
+</div>
+
+<div id="wikipedia-article-content">
+  <div id="identifierAnnotationsCount"></div>
 <div id="formulaAnnotationsCount"></div>
 
 <div id="annotationsHolder"></div></br>
@@ -72,17 +84,6 @@
     <div id="tableholder"></div>
   </div>
 </div>
-
-
-<script>
-  $("#noMatchSubmit").on('click', function (event) {
-    event.preventDefault();
-    handleNoMatch();
-  });
-</script>
-
-
-
 
 {% for Line in File.body %}
     <div>
@@ -136,7 +137,16 @@
         {% endfor %}
     </div>
 {% endfor %}
+</div>
 
+
+
+<script>
+  $("#noMatchSubmit").on('click', function (event) {
+    event.preventDefault();
+    handleNoMatch();
+  });
+</script>
 
 <script>
 
@@ -149,6 +159,36 @@
       alert('Annotations Saved');
       var win = window.open("https://forms.gle/MGDSmy8686DCA4477", '_blank');
       win.focus();
+    }
+
+    function toggleEditMode(){
+      console.log(fileName)
+      editMode = !editMode;
+
+      const saveBtn = document.getElementById('save-article-submit')
+      const saveChangesBtn = document.getElementById('update-article-submit')
+      const editModeBtn = document.getElementById('edit-mode-toggle')
+      const articleContent = document.getElementById('wikipedia-article-content')
+      const articleTextContent = document.getElementById('edit-mode-article')
+      
+      if(editMode){
+        try {
+          articleContent.style.display = 'none'
+          saveBtn.style.display = 'none'
+          saveChangesBtn.style.display = 'inline'
+          editModeBtn.innerText = editModeOffText
+          editArticle();
+        } catch (e) {
+          console.log(e);
+        }
+      } else {
+        articleContent.style.display = 'block'
+        saveBtn.style.display = 'inline'
+        saveChangesBtn.style.display = 'none'
+        editModeBtn.innerText = editModeOnText
+        articleTextContent.innerText = ''
+        articleTextContent.style.display = 'none'
+      }
     }
 </script>
 

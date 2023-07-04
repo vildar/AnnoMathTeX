@@ -2,6 +2,7 @@ import logging
 from jquery_unparam import jquery_unparam
 from django.shortcuts import render
 from django.views.generic import View
+from django.http import HttpResponse
 
 from ..forms.uploadfileform import UploadFileForm
 from ..forms.save_annotation_form import SaveAnnotationForm
@@ -11,6 +12,7 @@ from .helper_classes.cache_handler import CacheHandler
 from .helper_classes.wikipedia_article_name_handler import WikipediaArticleNameHandler
 from .helper_classes.session_saved_handler import SessionSavedHandler
 from .helper_classes.wikidata_qid_handler import WikidataQIDHandler
+from .helper_classes.data_repo_handler import DataRepoHandler
 
 
 logging.basicConfig(level=logging.INFO)
@@ -76,11 +78,44 @@ class AnnotationView(View):
 
         elif action == 'saveSession':
             import json
+            print(request.body)
             items_request_body = json.loads(request.body)
 
             return SessionSavedHandler(request, items_request_body).save()
 
         elif action == 'getRenderedWikipediaArticle':
             return WikipediaArticleNameHandler(request, items).handle_name()
+
+        elif action == 'getArticleText':
+            import json
+            # Get article name from cache
+            article_name = CacheHandler().read_file_name_cache()
+
+            # Get article in bytes format and convert to text
+            article_bytes = DataRepoHandler().get_wikipedia_article(article_name)
+            article_text = article_bytes.decode('utf-8')
+
+            response = HttpResponse(json.dumps(article_text), content_type='application/json')
+
+            return response 
+
+        elif action == 'updateArticle':
+            import json
+            post_data = request.POST
+            annotations, file_name, manual_recommendations = json.loads(post_data['annotations']), json.loads(post_data['fileName']), json.loads(post_data['manualRecommendations'])
+            items_request_body = {
+                'annotations': annotations,
+                'file_name': file_name,
+                'manual_recommendations': manual_recommendations 
+            }
+            article_name = CacheHandler().read_file_name_cache()
+            article_content = request.POST['articleText']
+            
+            article_name = article_name.replace(' (Wikitext)', '.txt')
+            article_name = article_name.replace(' (LaTeX)', '.tex')
+            article_name = article_name.replace(' ', '_')
+            path = 'files/{}'.format(article_name)
+
+            return SessionSavedHandler(request, items_request_body).save_update(path, article_content)
 
         return render(request, "file_upload_wiki_suggestions_2.html", self.initial)

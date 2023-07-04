@@ -568,3 +568,58 @@ function selectedWikipediaResult(name){
     //getWikipediaArticle(name);
 }
 
+function editArticle(){
+    $.ajax({
+        url : "edit_mode/", // the endpoint
+        type : "POST", // http method
+        data : { 
+        'csrfmiddlewaretoken': getCookie("csrftoken"),
+        'action': 'getArticleText',
+        }, // data sent with the post request
+  
+        //successful response
+        success : function(json) {
+            const articleTextContent = document.getElementById('edit-mode-article')
+            console.log(json)
+            articleTextContent.innerText = json
+            articleTextContent.style.display = 'block'
+        },
+  
+        //non-successful response
+        error : function(xhr, errmsg, err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>");
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+      });
+}
+
+function updateArticleText(){
+    const articleTextContent = document.getElementById('edit-mode-article')
+
+    $.ajax({
+        url : "update_article/", // the endpoint
+        type : "POST", // http method
+        data : { 
+            'csrfmiddlewaretoken': getCookie("csrftoken"),
+            'action': 'updateArticle',
+            'articleText': articleTextContent.innerText,
+            'annotations': JSON.stringify(annotations),
+            'fileName': JSON.stringify({'f': fileName}),
+            'manualRecommendations': JSON.stringify(manualRecommendations)
+            }, // data sent with the post request
+  
+        //successful response
+        success : function(json) {
+            alert('Successfully updated!')
+            window.location.reload()
+        },
+  
+        //non-successful response
+        error : function(xhr, errmsg, err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>");
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+      });
+}
