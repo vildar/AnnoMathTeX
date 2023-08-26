@@ -118,7 +118,22 @@
               var tokenType = "{{ Token.type }}";
 
               if(tokenType == 'Identifier' || tokenType == 'Formula'){
-                addToAllAnnotations(jsonContent, jsonMathEnv, tokenUniqueId, tokenType)
+                const tokenContent = JSON.parse(jsonContent)['content'];
+                const mathEnv = JSON.parse(jsonMathEnv)['math_env'];
+
+                content = 
+                    tokenType == 'Identifier' && allIdentifiers.includes(tokenContent) 
+                        ? tokenContent 
+                        : mathEnv;
+
+                annotationsList.push({ 
+                    the_post : $("#" + tokenUniqueId).val(),
+                    'searchString': content,
+                    'tokenType': tokenType,
+                    'mathEnv': $.param({'dummy': mathEnv}),
+                    'uniqueId': tokenUniqueId,
+                    'annotations': $.param(replaceAllEqualsPlusAnn(annotations))
+                })
               }
               
               //this part of js has to be in the loop, otherwise the unique_id will be lost

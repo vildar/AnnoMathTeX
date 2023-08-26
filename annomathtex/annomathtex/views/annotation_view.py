@@ -76,7 +76,7 @@ class AnnotationView(View):
             annotations_list = json.loads(post_data.get('annotations_list'))
             annotation_recommendations = []
             
-            for annotation in annotations_list:
+            for annotation in annotations_list[:15]:
                 tokenType, uniqueID, mathEnv, searchString = annotation['tokenType'], annotation['uniqueId'], annotation['mathEnv'], annotation['searchString']
                 anno_item = {k: jquery_unparam(v) for (k, v) in annotation.items()}
                 recommendations = TokenClickedHandler(anno_item).get_recommendations()[1]
