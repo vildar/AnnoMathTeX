@@ -41,7 +41,7 @@
 
 <form method="POST" id="post-form">
     {% csrf_token %}
-    <button id="update-article-submit" style="display:none;" type="button" name="edited-article-submit" onclick="updateArticleText();">
+    <button id="update-article-submit" style="display:none;" type="button" name="edited-article-submit" onclick="updateArticleContent();">
       Save changes
     </button>
     <button id="save-article-submit" type="submit" name="post-form-submit2" onclick="save();">
@@ -58,11 +58,11 @@
 
 <div id="wikipedia-article-content">
   <div id="identifierAnnotationsCount"></div>
-<div id="formulaAnnotationsCount"></div>
+  <div id="formulaAnnotationsCount"></div>
 
-<div id="annotationsHolder"></div></br>
+  <div id="annotationsHolder"></div></br>
 
-<div id="popupModal" class="modal">
+  <div id="popupModal" class="modal">
   <!-- Modal content -->
   <div class="modal-content">
     <h3 id="popupModalHeader"></h3>
@@ -75,7 +75,11 @@
       <!--<span class="validity"></span>-->
       <button id="noMatchSubmit">Submit</button>
     </div>
-    <p id="highlightedText"></p>
+    <p>
+      <span id="tokenTypeText"></span>
+      <input id="highlightedText" type="text" name="editableMathEnv"></input>
+      <button id="tokenUpdateBtn">Update</button>
+    </p>
     <button id="rejectHighlightingButton" onclick="rejectHighlightingListener()">placeholder</button>
     <br>
     <!--<div id="annotatedIdentifiers"></div>
@@ -83,60 +87,58 @@
     <div id="annotationsCountTable"></div>
     <div id="tableholder"></div>
   </div>
-</div>
+  </div>
 
-{% for Line in File.body %}
-    <div>
-        {% for Token in Line %}
-          {% if not Token.content == None %}
-            {% if Token.type == 'Formula' or Token.type == 'Identifier'%}
-              <span
-                class="inline"
-                id="{{ Token.unique_id }}"
-                onmouseover=""
-                style="color: {{ Token.highlight }}; cursor: pointer;"
-              >
-                  {{ Token.content }}
-              </span>
-            {% else %}
-              <span
-                class="inline"
-                id="{{ Token.unique_id }}"
-                style="color: {{ Token.highlight }};"
-              >
-                  {{ Token.content }}
-              </span>
+  <div id="articleTextContent">
+    {% for Line in File.body %}
+      <div>
+          {% for Token in Line %}
+            {% if not Token.content == None %}
+              {% if Token.type == 'Formula' or Token.type == 'Identifier'%}
+                <span
+                  class="inline {{ Token.type }}"
+                  id="{{ Token.unique_id }}"
+                  onmouseover=""
+                  style="color: {{ Token.highlight }}; cursor: pointer;"
+                >{{ Token.content }}</span>
+              {% else %}
+                <span
+                  class="inline"
+                  id="{{ Token.unique_id }}"
+                  style="color: {{ Token.highlight }};"
+                >{{ Token.content }}</span>
+              {% endif %}
+              <script>                
+                //this part of js has to be in the loop, otherwise the unique_id will be lost
+                //try catch not working yet, error happens when a backslash is in the text part
+                  $("#{{ Token.unique_id }}").on('click', function (event) {
+                    event.preventDefault();
+                    //console.log('wikidata query sent out');
+
+                    var jsonContent = "{{ Token.json_content|escapejs }}";
+                    var jsonMathEnv = "{{ Token.json_math_env|escapejs  }}";
+
+
+                    try {
+                      clickToken(jsonContent,
+                                jsonMathEnv,
+                                "{{ Token.unique_id }}",
+                                "{{ Token.type }}"
+                                );
+                    } catch (e) {
+                      console.log(e);
+                    }
+                  });
+              </script>
+
             {% endif %}
-            <script>
-              //this part of js has to be in the loop, otherwise the unique_id will be lost
-              //try catch not working yet, error happens when a backslash is in the text part
-                $("#{{ Token.unique_id }}").on('click', function (event) {
-                  event.preventDefault();
-                  //console.log('wikidata query sent out');
-
-                  var jsonContent = "{{ Token.json_content|escapejs }}";
-                  var jsonMathEnv = "{{ Token.json_math_env|escapejs  }}";
-
-
-                  try {
-                    clickToken(jsonContent,
-                              jsonMathEnv,
-                              "{{ Token.unique_id }}",
-                              "{{ Token.type }}"
-                              );
-                  } catch (e) {
-                    console.log(e);
-                  }
-                });
-            </script>
-
-          {% endif %}
-          {% if Token.endline %}
-              </br>
-          {% endif %}
-        {% endfor %}
-    </div>
-{% endfor %}
+            {% if Token.endline %}
+                </br>
+            {% endif %}
+          {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
 </div>
 
 
@@ -190,6 +192,75 @@
         articleTextContent.style.display = 'none'
       }
     }
+</script>
+
+<script>
+  $("#tokenUpdateBtn").on('click', function (event) {
+    event.preventDefault();
+
+    // Fetch all DOM nodes
+    const articleContent = document.getElementById('articleTextContent') 
+    const local = document.getElementById('localSwitch').checked
+    const newTokenText = document.getElementById('highlightedText').value
+    const annotationsSaveBtn = document.getElementById('save-article-submit')
+    const newMathEnv = mathEnv.replace(content, newTokenText)
+
+    // TODO: Local is buggy. WIP. To be resumed after bug fix.
+    if(local){}
+    else{
+      const uniqueIDs = linkedMathSymbols[content]
+
+      // Delete annotation because of change
+      if(annotations['global'][content]) {
+        deleteGlobalAnnotation(content)
+        annotationsSaveBtn.click();
+      }
+
+      if(isFormula){
+        let idx = 0;
+        
+        // For every instance of the formula
+        while(uniqueIDs[idx]){
+          // Create new formula dom element from text
+          const newFormula = document.createElement('span');
+          newFormula.textContent = newTokenText
+
+          // Delete all elements between $..$
+          const startFormula = document.getElementById(uniqueIDs[idx])
+          const endFormula = document.getElementById(uniqueIDs[idx + 1])
+
+          while (startFormula.nextSibling !== endFormula) {
+            startFormula.nextSibling.remove();
+          }
+      
+          // Insert into DOM
+          endFormula.before(newFormula);
+      
+          idx += 2;
+        }
+      } else {
+        uniqueIDs.forEach(uID => {
+          let token = articleContent.querySelector(`[id='${uID}']`)
+  
+          token.innerHTML = newTokenText
+        })
+      }
+    
+      let formulaStrings = articleContent.querySelectorAll('.Formula')
+      
+      // Convert all $..$ to mathml element
+      formulaStrings.forEach(el => {
+        let tokenUID = el.id
+        let nextTokenID = tokenUID.replace(/(\d+)$/, match => parseInt(match) + 1);
+        let nextToken = articleContent.querySelector(`[id='${nextTokenID}']`)
+        
+        if(nextToken?.classList?.contains('Identifier')) el.textContent = '<math>' 
+        else el.textContent = '</math>'
+      })
+
+      updateArticleContent(articleContent.innerText);
+    }
+  })
 </script>
 
 </body>

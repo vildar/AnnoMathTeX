@@ -341,13 +341,20 @@ class Parser(object, metaclass=ABCMeta):
         linked_words, linked_math_symbols = self.form_links(processed_lines_unique_ids)
         #existing_annotations = self.read_annotation_file()
         existing_annotations = self.get_annotation_file_from_repo()
+        existing_annotations_dict = json.loads(existing_annotations)
+
+        # Iterate through the 'global' section
+        for key, value in existing_annotations_dict["global"].items():
+            if key in linked_math_symbols:
+                value['uniqueIDs'] = linked_math_symbols[key]
+
         file = File(processed_lines_unique_ids,
                                linked_words,
                                linked_math_symbols,
                                self.file_name,
                                self.identifier_count,
                                self.formula_count,
-                               existing_annotations)
+                               json.dumps(existing_annotations_dict))
 
 
         return (line_dict, identifier_line_dict, file)

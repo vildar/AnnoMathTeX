@@ -13,6 +13,7 @@ from .helper_classes.wikipedia_article_name_handler import WikipediaArticleNameH
 from .helper_classes.session_saved_handler import SessionSavedHandler
 from .helper_classes.wikidata_qid_handler import WikidataQIDHandler
 from .helper_classes.data_repo_handler import DataRepoHandler
+from ..parsing.txt_parser import TXTParser
 
 
 logging.basicConfig(level=logging.INFO)
@@ -78,7 +79,6 @@ class AnnotationView(View):
 
         elif action == 'saveSession':
             import json
-            print(request.body)
             items_request_body = json.loads(request.body)
 
             return SessionSavedHandler(request, items_request_body).save()

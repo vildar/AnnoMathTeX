@@ -590,12 +590,12 @@ function editArticle(){
             $('#results').html("<div class='alert-box alert radius' data-alert>error: "+errmsg+
                 " <a href='#' class='close'>&times;</a></div>");
             console.log(xhr.status + ": " + xhr.responseText);
-        }
+        },
       });
 }
 
-function updateArticleText(){
-    const articleTextContent = document.getElementById('edit-mode-article')
+function updateArticleContent(textContent){
+    const articleTextContent = document.getElementById('edit-mode-article').textContent
 
     $.ajax({
         url : "update_article/", // the endpoint
@@ -603,7 +603,7 @@ function updateArticleText(){
         data : { 
             'csrfmiddlewaretoken': getCookie("csrftoken"),
             'action': 'updateArticle',
-            'articleText': articleTextContent.innerText,
+            'articleText': textContent || articleTextContent,
             'annotations': JSON.stringify(annotations),
             'fileName': JSON.stringify({'f': fileName}),
             'manualRecommendations': JSON.stringify(manualRecommendations)
@@ -611,7 +611,7 @@ function updateArticleText(){
   
         //successful response
         success : function(json) {
-            alert('Successfully updated!')
+            alert('Token successfully updated!')
             window.location.reload()
         },
   

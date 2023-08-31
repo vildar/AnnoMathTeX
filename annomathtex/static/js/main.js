@@ -58,21 +58,22 @@ function clickToken(jsonContent, jsonMathEnv, tokenUniqueId, tokenType) {
     //tokenContent = contentTmp;
     uniqueID = tokenUniqueId;
     mathEnv = mathEnvContent;
-
-
+    uniqueIDsList = linkedMathSymbols[tokenContent]
 
     //Display the selected token in the element "highlightedText".
     //If the clicked token is the delimiter of a math environment (entire formula), the presented text will be the
     //string for the entire math environment and not the delimiter.
     if (tokenType == 'Identifier') {
-        var fillText = 'Identifier: ' + tokenContent;
+        var typeText = 'Identifier: '
+        var fillText = tokenContent;
         content = tokenContent;
         isFormula = false;
         var headerText = 'IDENTIFIER ANNOTATION';
         var rejectHighlightingButtonText = 'Not an identifier';
     }
     else {
-        var fillText = 'Formula: ' + mathEnvContent;
+        var typeText = 'Formula: '
+        var fillText = mathEnvContent;
         content = mathEnvContent//.split('\\').join('');
         isFormula = true;
         var headerText = 'FORMULA ANNOTATION';
@@ -80,7 +81,8 @@ function clickToken(jsonContent, jsonMathEnv, tokenUniqueId, tokenType) {
     }
 
     document.getElementById('popupModalHeader').innerHTML = headerText;
-    document.getElementById("highlightedText").innerHTML = fillText;
+    document.getElementById('tokenTypeText').innerHTML = typeText
+    document.getElementById("highlightedText").value = fillText;
     document.getElementById("rejectHighlightingButton").innerHTML = rejectHighlightingButtonText;
 
     let data_dict = { the_post : $("#" + tokenUniqueId).val(),
