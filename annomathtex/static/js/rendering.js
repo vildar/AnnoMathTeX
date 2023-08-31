@@ -590,6 +590,9 @@ function autoAnnotate(){
         'annotations_list': JSON.stringify(filteredAnnotations)
     }
 
+    // Show the loading bar
+    $('#loading-bar-container').show();
+
     $.ajax({
         url : "auto-annotate/", // the endpoint
         type : "POST", // http method
@@ -597,6 +600,8 @@ function autoAnnotate(){
   
         //successful response
         success : function(annotation_recommendations) {
+            $('#loading-bar-container').hide();
+
             deleteAllAnnotations()
 
             resetSourceWithNums(annotation_recommendations)
@@ -610,9 +615,10 @@ function autoAnnotate(){
   
         //non-successful response
         error : function(xhr, errmsg, err) {
+            $('#loading-bar-container').hide();
             $('#results').html("<div class='alert-box alert radius' data-alert>error: "+errmsg+
                 " <a href='#' class='close'>&times;</a></div>");
             console.log(xhr.status + ": " + xhr.responseText);
         }
-      });  
+      });
 }
